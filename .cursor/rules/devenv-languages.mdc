@@ -1,0 +1,112 @@
+---
+description: Devenv Language-Specific Configurations
+globs: 
+alwaysApply: false
+---
+## Description
+This rule enforces best practices for configuring language-specific development environments in devenv.
+
+## Rule Details
+- Use `languages` for language-specific configurations
+- Use `languages.*.enable` to enable language support
+- Use `languages.*.package` for custom language versions
+- Use `languages.*.extensions` for IDE extensions
+- Use `languages.*.filters` for file filtering
+- Use `languages.*.formatters` for code formatting
+- Use `languages.*.linters` for code linting
+- Use `languages.*.tools` for development tools
+
+## Examples
+
+### Good
+```nix
+{ pkgs, ... }: {
+  # Language-specific configurations
+  languages = {
+    # Python configuration
+    python = {
+      enable = true;
+      package = pkgs.python39;
+      extensions = [
+        "ms-python.python"
+        "ms-python.vscode-pylance"
+      ];
+      formatters = {
+        black.enable = true;
+        isort.enable = true;
+      };
+      linters = {
+        pylint.enable = true;
+        mypy.enable = true;
+      };
+      tools = {
+        poetry.enable = true;
+        pip.enable = true;
+      };
+    };
+
+    # JavaScript/TypeScript configuration
+    javascript = {
+      enable = true;
+      package = pkgs.nodejs_18;
+      extensions = [
+        "dbaeumer.vscode-eslint"
+        "esbenp.prettier-vscode"
+      ];
+      formatters = {
+        prettier.enable = true;
+      };
+      linters = {
+        eslint.enable = true;
+      };
+      tools = {
+        npm.enable = true;
+        yarn.enable = true;
+      };
+    };
+
+    # Rust configuration
+    rust = {
+      enable = true;
+      package = pkgs.rustc;
+      extensions = [
+        "rust-lang.rust-analyzer"
+        "tamasfe.even-better-toml"
+      ];
+      formatters = {
+        rustfmt.enable = true;
+      };
+      linters = {
+        clippy.enable = true;
+      };
+      tools = {
+        cargo.enable = true;
+      };
+    };
+  };
+}
+```
+
+### Bad
+```nix
+{ pkgs }: {
+  # Missing language configurations
+  # Missing formatters
+  # Missing linters
+  # Missing tools
+  # Missing extensions
+}
+```
+
+## Why
+- Language-specific configurations ensure proper development support
+- Formatters maintain consistent code style
+- Linters catch potential issues early
+- Tools provide necessary development utilities
+- Extensions enhance IDE capabilities
+- Custom package versions enable version control
+- File filters optimize performance
+
+## References
+- [Devenv Languages](mdc:https:/devenv.sh/reference/options/#languages)
+- [Devenv Language Support](mdc:https:/devenv.sh/guides/languages) 

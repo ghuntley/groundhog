@@ -1,0 +1,130 @@
+---
+description: Rust Type System and Generics Best Practices
+globs: *.rs
+alwaysApply: false
+---
+This rule enforces best practices for using Rust's type system and generics.
+
+## Rule Details
+
+- **Pattern**: `*.rs`
+- **Severity**: Error
+- **Category**: Type System
+
+## Checks
+
+1. **Trait Bounds**
+   - Use appropriate trait bounds
+   - Prefer `where` clauses for complex bounds
+   - Use `+` for multiple trait bounds
+   - Consider using `trait_alias` for common bound combinations
+
+2. **Associated Types**
+   - Use associated types for type relationships
+   - Implement `Default` for associated types
+   - Document associated type constraints
+   - Use `type` aliases for complex associated types
+
+3. **Generic Constraints**
+   - Use `Sized` bound when needed
+   - Consider `?Sized` for dynamic dispatch
+   - Use `Copy` and `Clone` bounds appropriately
+   - Implement `Send` and `Sync` for thread safety
+
+4. **Type Parameters**
+   - Use meaningful type parameter names
+   - Document type parameter constraints
+   - Consider using `const` generics where appropriate
+   - Use `PhantomData` for type-level programming
+
+## Examples
+
+### Good
+```rust
+/// A generic container that can hold any type implementing `Display`
+/// and can be cloned.
+///
+/// # Type Parameters
+///
+/// * `T` - The type of value stored in the container
+///   - Must implement `Display` for string representation
+///   - Must implement `Clone` for value duplication
+pub struct Container<T>
+where
+    T: Display + Clone,
+{
+    value: T,
+}
+
+/// A trait for types that can be converted to a specific format
+pub trait Format {
+    /// The type that this format can be converted to
+    type Output;
+    
+    /// Convert the value to the output format
+    fn format(&self) -> Self::Output;
+}
+
+/// A generic function with complex bounds
+pub fn process<T, U>(input: T) -> Result<U, Error>
+where
+    T: AsRef<str> + Send + Sync,
+    U: FromStr<Err = Error> + Send + Sync,
+{
+    // Implementation
+}
+
+/// A type-level programming example using PhantomData
+pub struct Length<const N: usize> {
+    _phantom: PhantomData<[(); N]>,
+}
+
+impl<const N: usize> Length<N> {
+    pub fn new() -> Self {
+        Self {
+            _phantom: PhantomData,
+        }
+    }
+}
+
+/// A trait alias for common bound combinations
+pub trait Sendable = Send + Sync + 'static;
+```
+
+### Bad
+```rust
+// Bad: Unclear type parameter name and missing bounds
+pub struct Data<T> {
+    value: T,
+}
+
+// Bad: Complex bounds without where clause
+pub fn bad_generic<T: Display + Clone + Send + Sync + 'static>(input: T) {
+    // Implementation
+}
+
+// Bad: Missing associated type documentation
+pub trait BadFormat {
+    type Output;
+    fn format(&self) -> Self::Output;
+}
+
+// Bad: Unnecessary trait bounds
+pub struct UnnecessaryBounds<T: Clone + Copy + Send + Sync + 'static> {
+    value: T,
+}
+```
+
+## Rationale
+
+Proper use of Rust's type system ensures:
+- Type safety and compile-time guarantees
+- Flexible and reusable code
+- Clear type relationships
+- Efficient monomorphization
+
+## References
+
+- [Rust Book - Generics](mdc:https:/doc.rust-lang.org/book/ch10-00-generics.html)
+- [Rust Reference - Traits](mdc:https:/doc.rust-lang.org/reference/traits.html)
+- [Rust Reference - Associated Types](mdc:https:/doc.rust-lang.org/reference/items/associated-items.html) 

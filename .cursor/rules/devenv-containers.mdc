@@ -1,0 +1,116 @@
+---
+description: Devenv Container and Docker Integration
+globs: 
+alwaysApply: false
+---
+## Description
+This rule enforces best practices for container and Docker integration in devenv environments.
+
+## Rule Details
+- Use `containers` for containerized services
+- Use `containers.*.image` for container images
+- Use `containers.*.ports` for port mappings
+- Use `containers.*.volumes` for volume mounts
+- Use `containers.*.environment` for container environment variables
+- Use `containers.*.command` for custom container commands
+- Use `containers.*.dependsOn` for container dependencies
+- Use `containers.*.healthcheck` for container health checks
+- Use `containers.*.networks` for container networking
+- Use `containers.*.labels` for container metadata
+
+## Examples
+
+### Good
+```nix
+{ pkgs, ... }: {
+  # Container configurations
+  containers = {
+    # Database container
+    postgres = {
+      image = "postgres:14-alpine";
+      ports = ["5432:5432"];
+      volumes = [
+        "./data/postgres:/var/lib/postgresql/data"
+        "./init.sql:/docker-entrypoint-initdb.d/init.sql"
+      ];
+      environment = {
+        POSTGRES_DB = "myapp_development";
+        POSTGRES_USER = "postgres";
+        POSTGRES_PASSWORD = "development";
+      };
+      healthcheck = {
+        test = ["CMD-SHELL", "pg_isready -U postgres"];
+        interval = "10s";
+        timeout = "5s";
+        retries = 5;
+      };
+      networks = ["app-network"];
+      labels = {
+        "com.example.service" = "database";
+        "com.example.environment" = "development";
+      };
+    };
+
+    # Redis container
+    redis = {
+      image = "redis:7-alpine";
+      ports = ["6379:6379"];
+      volumes = ["./data/redis:/data"];
+      command = ["redis-server", "--appendonly", "yes"];
+      healthcheck = {
+        test = ["CMD", "redis-cli", "ping"];
+        interval = "10s";
+        timeout = "5s";
+        retries = 5;
+      };
+      networks = ["app-network"];
+    };
+
+    # API container
+    api = {
+      image = "myapp-api:latest";
+      ports = ["3000:3000"];
+      volumes = ["./src:/app/src"];
+      environment = {
+        NODE_ENV = "development";
+        DATABASE_URL = "postgresql://postgres:development@postgres:5432/myapp_development";
+        REDIS_URL = "redis://redis:6379";
+      };
+      dependsOn = ["postgres", "redis"];
+      healthcheck = {
+        test = ["CMD", "curl", "-f", "http://localhost:3000/health"];
+        interval = "10s";
+        timeout = "5s";
+        retries = 5;
+      };
+      networks = ["app-network"];
+    };
+  };
+}
+```
+
+### Bad
+```nix
+{ pkgs }: {
+  # Missing container configurations
+  # Missing health checks
+  # Missing volume mounts
+  # Missing environment variables
+  # Missing network configuration
+  # Missing dependency declarations
+}
+```
+
+## Why
+- Container integration enables service isolation
+- Health checks ensure service availability
+- Volume mounts persist container data
+- Environment variables configure container behavior
+- Network configuration enables service communication
+- Dependency declarations ensure proper startup order
+- Labels provide container metadata
+- Port mappings enable external access
+
+## References
+- [Devenv Containers](mdc:https:/devenv.sh/reference/options/#containers)
+- [Devenv Docker Guide](mdc:https:/devenv.sh/guides/docker) 

@@ -1,0 +1,74 @@
+---
+description:  Devenv Basic Configuration and Structure
+globs: 
+alwaysApply: false
+---
+## Description
+This rule enforces best practices for basic devenv configuration and project structure.
+
+## Rule Details
+- Use `devenv.nix` as the main configuration file
+- Use `devenv.yaml` for project composition and imports
+- Structure environment variables using the `env` attribute set
+- Use `packages` for declaring development dependencies
+- Use `enterShell` for environment initialization
+- Use `dotenv.enable` for loading environment variables from `.env`
+- Use `devenv.debug` for troubleshooting
+- Use `devenv.warnOnNewVersion` to stay updated
+
+## Examples
+
+### Good
+```nix
+{ pkgs, config, ... }: {
+  # Enable debug mode for troubleshooting
+  devenv.debug = true;
+
+  # Load environment variables from .env
+  dotenv.enable = true;
+
+  # Define environment variables
+  env = {
+    PROJECT_NAME = "my-project";
+    DEBUG = "true";
+  };
+
+  # Declare development dependencies
+  packages = [
+    pkgs.git
+    pkgs.curl
+    pkgs.jq
+  ];
+
+  # Initialize environment
+  enterShell = ''
+    echo "Welcome to ${config.env.PROJECT_NAME}"
+    git --version
+  '';
+}
+```
+
+### Bad
+```nix
+{ pkgs }: {
+  # Missing environment variable structure
+  PROJECT_NAME = "my-project";  # Should be in env set
+
+  # Missing package declarations
+  # Missing enterShell
+  # Missing dotenv configuration
+}
+```
+
+## Why
+- Proper configuration structure ensures maintainability
+- Environment variables in `env` set provide better organization
+- Package declarations make dependencies explicit
+- `enterShell` ensures consistent environment setup
+- `.env` support enables secure secret management
+- Debug mode helps with troubleshooting
+- Version warnings keep environments up to date
+
+## References
+- [Devenv Documentation](mdc:https:/devenv.sh)
+- [Devenv Guide](mdc:https:/devenv.sh/guides) 

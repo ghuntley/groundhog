@@ -1,0 +1,71 @@
+---
+description: Rust Ownership and Borrowing Best Practices
+globs: *.rs
+alwaysApply: false
+---
+This rule enforces best practices related to Rust's ownership and borrowing system.
+
+## Rule Details
+
+- **Pattern**: `*.rs`
+- **Severity**: Error
+- **Category**: Ownership
+
+## Checks
+
+1. **Unnecessary Clone Usage**
+   - Avoid using `.clone()` when ownership can be transferred
+   - Prefer references when possible
+   - Use `&str` instead of `String` for string literals
+
+2. **Mutable References**
+   - Ensure only one mutable reference exists at a time
+   - Avoid unnecessary mutability
+   - Use `&mut` only when data needs to be modified
+
+3. **Lifetime Annotations**
+   - Add explicit lifetime annotations when compiler cannot infer them
+   - Use descriptive lifetime names (e.g., `'a`, `'static`)
+   - Ensure lifetime parameters are properly constrained
+
+4. **Reference Counting**
+   - Use `Arc` for shared ownership across threads
+   - Use `Rc` for shared ownership within a single thread
+   - Consider using `Weak` references to break reference cycles
+
+## Examples
+
+### Good
+```rust
+fn process_string(s: &str) {
+    // Using string slice instead of owned String
+}
+
+fn modify_data(data: &mut Vec<i32>) {
+    // Clear mutable reference usage
+}
+```
+
+### Bad
+```rust
+fn process_string(s: String) {
+    // Unnecessary ownership transfer
+}
+
+fn modify_data(data: &mut Vec<i32>, other: &mut Vec<i32>) {
+    // Multiple mutable references to same data
+}
+```
+
+## Rationale
+
+Rust's ownership system is fundamental to its memory safety guarantees. Following these practices ensures:
+- Memory safety without garbage collection
+- Thread safety without runtime overhead
+- Clear ownership semantics
+- Efficient resource management
+
+## References
+
+- [Rust Book - Ownership](mdc:https:/doc.rust-lang.org/book/ch04-00-understanding-ownership.html)
+- [Rust Reference - Lifetimes](mdc:https:/doc.rust-lang.org/reference/lifetimes.html) 

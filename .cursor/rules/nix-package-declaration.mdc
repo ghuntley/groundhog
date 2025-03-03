@@ -1,0 +1,67 @@
+---
+description: Nix Package Declaration and Naming Conventions
+globs: *.nix
+alwaysApply: false
+---
+## Description
+This rule enforces best practices for package declarations and naming conventions in Nix files.
+
+## Rule Details
+- Package names should be lowercase and use hyphens for word separation
+- Version numbers should be declared as strings
+- Dependencies should be explicitly declared in the buildInputs or nativeBuildInputs
+- Package attributes should be properly documented with comments
+- Use semantic versioning for package versions
+
+## Examples
+
+### Good
+```nix
+{ lib
+, stdenv
+, fetchFromGitHub
+, rustPlatform
+}:
+
+rustPlatform.buildRustPackage rec {
+  pname = "my-package";
+  version = "0.1.0";
+
+  src = fetchFromGitHub {
+    owner = "owner";
+    repo = "repo";
+    rev = "v${version}";
+  };
+
+  cargoSha256 = "sha256-...";
+
+  meta = with lib; {
+    description = "A well-documented package";
+    homepage = "https://github.com/owner/repo";
+    license = licenses.mit;
+    maintainers = with maintainers; [ /* list of maintainers */ ];
+  };
+}
+```
+
+### Bad
+```nix
+{ stdenv }:
+
+stdenv.mkDerivation {
+  name = "MyPackage-1.0";  # Incorrect naming convention
+  src = ./.;  # Missing version declaration
+  # Missing dependency declarations
+  # Missing meta information
+}
+```
+
+## Why
+- Consistent naming makes packages easier to find and maintain
+- Explicit dependency declarations prevent build failures
+- Proper documentation helps other developers understand the package
+- Semantic versioning makes dependency management more reliable
+
+## References
+- [Nixpkgs Manual](mdc:https:/nixos.org/nixpkgs/manual)
+- [Nixpkgs Contributing Guidelines](mdc:https:/github.com/NixOS/nixpkgs/blob/master/CONTRIBUTING.md) 

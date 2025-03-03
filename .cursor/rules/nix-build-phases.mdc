@@ -1,0 +1,92 @@
+---
+description: 
+globs: *.nix
+alwaysApply: false
+---
+# Nix Build Phases and Hooks
+
+## Description
+This rule enforces best practices for using build phases and hooks in Nix derivations.
+
+## Rule Details
+- Use standard build phases when possible
+- Prefer using `preBuild`, `postBuild`, etc. over overriding entire phases
+- Use `makeWrapper` for environment variable management
+- Use `patchPhase` for source modifications
+- Use `installPhase` for proper installation
+- Use `fixupPhase` for post-installation fixes
+- Use `checkPhase` for running tests
+- Use `distPhase` for creating distribution files
+
+## Examples
+
+### Good
+```nix
+{ lib
+, stdenv
+, makeWrapper
+}:
+
+stdenv.mkDerivation rec {
+  pname = "my-package";
+  version = "1.0.0";
+
+  src = ./src;
+
+  nativeBuildInputs = [ makeWrapper ];
+
+  # Use standard phases with hooks
+  preBuild = ''
+    echo "Configuring build..."
+  '';
+
+  postInstall = ''
+    wrapProgram $out/bin/my-program \
+      --set PATH ${lib.makeBinPath [ stdenv.cc ]}
+  '';
+
+  # Run tests during build
+  doCheck = true;
+  checkPhase = ''
+    runHook preCheck
+    make test
+    runHook postCheck
+  '';
+
+  # Create distribution files
+  distPhase = ''
+    runHook preDist
+    mkdir -p $out/dist
+    cp -r dist/* $out/dist/
+    runHook postDist
+  '';
+}
+```
+
+### Bad
+```nix
+{ stdenv }:
+
+stdenv.mkDerivation {
+  name = "my-package";
+  src = ./src;
+
+  # Overriding entire phases instead of using hooks
+  buildPhase = ''
+    make
+    make install
+    make test
+  '';  # Missing proper phase separation
+}
+```
+
+## Why
+- Standard build phases ensure consistent behavior across packages
+- Hooks allow for customization without breaking standard behavior
+- Proper phase separation makes builds more maintainable
+- Using standard phases makes packages more compatible with Nix tools
+- Proper installation phases ensure correct file placement and permissions
+
+## References
+- [Nixpkgs Manual - Build Phases](mdc:https:/nixos.org/nixpkgs/manual/#sec-stdenv-phases)
+- [Nixpkgs Manual - Hooks](mdc:https:/nixos.org/nixpkgs/manual/#sec-stdenv-hooks) 

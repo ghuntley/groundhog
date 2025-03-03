@@ -1,0 +1,79 @@
+---
+description: Nix Security and Sandboxing
+globs: *.nix
+alwaysApply: false
+---
+## Description
+This rule enforces best practices for security and sandboxing in Nix derivations.
+
+## Rule Details
+- Use `allowedRequisites` to restrict package dependencies
+- Use `allowedReferences` to control what can be referenced
+- Use `disallowedReferences` to prevent specific dependencies
+- Use `disallowedRequisites` to prevent specific requisites
+- Use `allowedInsecurePackages` only when absolutely necessary
+- Use `restrictEval` to prevent access to certain paths
+- Use `__noChroot` only when absolutely necessary
+- Use `__noChroot` with proper justification in comments
+- Use `__noChroot` with minimal scope
+
+## Examples
+
+### Good
+```nix
+{ lib
+, stdenv
+}:
+
+stdenv.mkDerivation rec {
+  pname = "secure-package";
+  version = "1.0.0";
+
+  src = ./src;
+
+  # Restrict package dependencies
+  allowedRequisites = with stdenv; [
+    stdenv.cc
+    stdenv.cc.libc
+  ];
+
+  # Prevent specific dependencies
+  disallowedReferences = [
+    stdenv.cc
+  ];
+
+  # Restrict evaluation
+  __restrictEval = true;
+
+  # Minimal use of __noChroot with justification
+  __noChroot = true;  # Required for hardware access
+}
+```
+
+### Bad
+```nix
+{ stdenv }:
+
+stdenv.mkDerivation {
+  name = "insecure-package";
+  src = ./src;
+
+  # Missing security restrictions
+  # Using __noChroot without justification
+  __noChroot = true;
+
+  # Allowing all insecure packages
+  allowedInsecurePackages = [ "*" ];
+}
+```
+
+## Why
+- Security restrictions prevent unauthorized access to system resources
+- Sandboxing ensures reproducible and secure builds
+- Proper use of `__noChroot` prevents security vulnerabilities
+- Dependency restrictions prevent supply chain attacks
+- Evaluation restrictions prevent access to sensitive paths
+
+## References
+- [Nixpkgs Manual - Security](mdc:https:/nixos.org/nixpkgs/manual/#sec-security)
+- [Nix Security](mdc:https:/nixos.org/security.html) 

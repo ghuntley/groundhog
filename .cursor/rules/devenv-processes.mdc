@@ -1,0 +1,88 @@
+---
+description: Devenv Process and Service Management
+globs: 
+alwaysApply: false
+---
+## Description
+This rule enforces best practices for managing processes and services in devenv environments.
+
+## Rule Details
+- Use `processes` for declaring background services
+- Use `scripts` for defining executable commands
+- Use `services` for system service integration
+- Use `processes.*.exec` for process commands
+- Use `processes.*.env` for process-specific environment variables
+- Use `processes.*.ready` for process readiness checks
+- Use `processes.*.shutdown` for graceful shutdown
+- Use `processes.*.restart` for automatic restart policies
+
+## Examples
+
+### Good
+```nix
+{ pkgs, ... }: {
+  # Define background processes
+  processes = {
+    # Database service
+    postgres.exec = "${pkgs.postgresql}/bin/postgres -D ./data/postgres";
+    postgres.ready = "pg_isready -h localhost -p 5432";
+    postgres.shutdown = "pg_ctl stop -D ./data/postgres";
+    postgres.env = {
+      PGDATA = "./data/postgres";
+      POSTGRES_PASSWORD = "development";
+    };
+
+    # API server
+    api.exec = "npm run dev";
+    api.ready = "curl -f http://localhost:3000/health";
+    api.shutdown = "pkill -f 'npm run dev'";
+    api.restart = "on-failure";
+
+    # Cache server
+    redis.exec = "${pkgs.redis}/bin/redis-server";
+    redis.ready = "redis-cli ping";
+    redis.shutdown = "redis-cli shutdown";
+  };
+
+  # Define executable scripts
+  scripts = {
+    db-migrate.exec = "npm run migrate";
+    db-seed.exec = "npm run seed";
+    test.exec = "npm test";
+  };
+
+  # System service integration
+  services = {
+    postgres = {
+      enable = true;
+      package = pkgs.postgresql;
+      initialDatabases = [{ name = "myapp_development"; }];
+    };
+  };
+}
+```
+
+### Bad
+```nix
+{ pkgs }: {
+  # Missing process definitions
+  # Missing ready checks
+  # Missing shutdown handlers
+  # Missing environment variables
+  # Missing service integration
+}
+```
+
+## Why
+- Process management ensures reliable service operation
+- Ready checks prevent race conditions
+- Graceful shutdown prevents data corruption
+- Environment variables provide configuration flexibility
+- Service integration enables system-level features
+- Scripts provide convenient command shortcuts
+- Restart policies ensure service availability
+
+## References
+- [Devenv Processes](mdc:https:/devenv.sh/reference/options/#processes)
+- [Devenv Services](mdc:https:/devenv.sh/reference/options/#services)
+- [Devenv Scripts](mdc:https:/devenv.sh/reference/options/#scripts) 

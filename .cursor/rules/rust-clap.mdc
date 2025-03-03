@@ -1,0 +1,200 @@
+---
+description: Rust CLI Best Practices with clap
+globs: *.rs
+alwaysApply: false
+---
+This rule enforces best practices for building command-line interfaces using the clap crate.
+
+## Rule Details
+
+- **Pattern**: `*.rs`
+- **Severity**: Warning
+- **Category**: CLI
+
+## Checks
+
+1. **Command Structure**
+   - Use derive macros for command definitions
+   - Organize commands hierarchically
+   - Use meaningful command names
+   - Document all commands and options
+
+2. **Argument Handling**
+   - Use appropriate argument types
+   - Implement proper validation
+   - Use default values when appropriate
+   - Handle required vs optional arguments
+
+3. **User Experience**
+   - Provide helpful error messages
+   - Include usage examples
+   - Use consistent naming conventions
+   - Implement proper help text
+
+4. **Subcommands**
+   - Organize related commands
+   - Use consistent subcommand structure
+   - Share common options
+   - Document subcommand relationships
+
+## Examples
+
+### Good
+```rust
+use clap::{Parser, Subcommand};
+use std::path::PathBuf;
+
+/// A CLI tool for managing a database
+#[derive(Parser)]
+#[command(author, version, about, long_about = None)]
+pub struct Cli {
+    /// Sets the config file path
+    #[arg(short, long, value_name = "FILE")]
+    pub config: Option<PathBuf>,
+
+    /// Sets the log level
+    #[arg(short, long, value_enum, default_value_t = LogLevel::Info)]
+    pub log_level: LogLevel,
+
+    #[command(subcommand)]
+    pub command: Commands,
+}
+
+/// Available log levels
+#[derive(clap::ValueEnum, Clone, Debug)]
+pub enum LogLevel {
+    Debug,
+    Info,
+    Warn,
+    Error,
+}
+
+/// Available commands
+#[derive(Subcommand)]
+pub enum Commands {
+    /// Initialize a new database
+    Init {
+        /// The database name
+        #[arg(short, long)]
+        name: String,
+
+        /// The database version
+        #[arg(short, long, default_value = "1.0.0")]
+        version: String,
+    },
+
+    /// Manage database migrations
+    Migrate {
+        #[command(subcommand)]
+        command: MigrateCommands,
+    },
+}
+
+/// Migration subcommands
+#[derive(Subcommand)]
+pub enum MigrateCommands {
+    /// Create a new migration
+    Create {
+        /// The migration name
+        name: String,
+
+        /// The migration description
+        #[arg(short, long)]
+        description: Option<String>,
+    },
+
+    /// Apply pending migrations
+    Up {
+        /// The number of migrations to apply
+        #[arg(short, long, default_value = "1")]
+        count: usize,
+    },
+}
+
+impl Cli {
+    /// Parse command line arguments
+    pub fn parse() -> Self {
+        Self::parse()
+    }
+
+    /// Execute the command
+    pub async fn execute(&self) -> Result<(), Error> {
+        match &self.command {
+            Commands::Init { name, version } => {
+                println!("Initializing database {} version {}", name, version);
+                // Implementation
+            }
+            Commands::Migrate { command } => {
+                match command {
+                    MigrateCommands::Create { name, description } => {
+                        println!(
+                            "Creating migration {}: {}",
+                            name,
+                            description.as_deref().unwrap_or("No description")
+                        );
+                        // Implementation
+                    }
+                    MigrateCommands::Up { count } => {
+                        println!("Applying {} migrations", count);
+                        // Implementation
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+/// Example usage:
+/// ```bash
+/// # Initialize a new database
+/// my-cli init --name mydb --version 1.0.0
+///
+/// # Create a new migration
+/// my-cli migrate create add-users-table --description "Add users table"
+///
+/// # Apply migrations
+/// my-cli migrate up --count 2
+/// ```
+```
+
+### Bad
+```rust
+// Bad: Manual argument parsing without clap
+fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    if args.len() < 2 {
+        println!("Usage: {} <command>", args[0]);
+        return;
+    }
+    // Manual argument handling
+}
+
+// Bad: Poor command structure
+#[derive(Parser)]
+struct Cli {
+    #[command(subcommand)]
+    command: String, // Using String instead of enum
+}
+
+// Bad: Missing documentation
+#[derive(Parser)]
+struct BadCli {
+    #[arg(short, long)]
+    config: String,
+}
+```
+
+## Rationale
+
+Proper CLI design ensures:
+- Intuitive user experience
+- Consistent command structure
+- Clear documentation
+- Robust error handling
+
+## References
+
+- [clap Documentation](mdc:https:/docs.rs/clap/latest/clap)
+- [clap Book](mdc:https:/docs.rs/clap/latest/clap/_derive/index.html)
+- [Command Line Interface Guidelines](mdc:https:/clig.dev) 

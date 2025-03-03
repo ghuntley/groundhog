@@ -1,0 +1,85 @@
+---
+description: Rust Error Handling Best Practices
+globs: *.rs
+alwaysApply: false
+---
+This rule enforces best practices for error handling in Rust code.
+
+## Rule Details
+
+- **Pattern**: `*.rs`
+- **Severity**: Error
+- **Category**: Error Handling
+
+## Checks
+
+1. **Result Type Usage**
+   - Use `Result<T, E>` for recoverable errors
+   - Avoid using `Option` for error cases
+   - Prefer custom error types over `String` or `Box<dyn Error>`
+
+2. **Error Propagation**
+   - Use `?` operator for error propagation
+   - Avoid excessive error mapping
+   - Implement `From` trait for error type conversions
+
+3. **Error Types**
+   - Create custom error types using `thiserror` or `anyhow`
+   - Implement `std::error::Error` trait
+   - Use meaningful error variants
+
+4. **Panic Handling**
+   - Avoid using `unwrap()` and `expect()` in production code
+   - Use `panic!` only for unrecoverable errors
+   - Document panic conditions
+
+## Examples
+
+### Good
+```rust
+#[derive(Debug, thiserror::Error)]
+enum DatabaseError {
+    #[error("Connection failed: {0}")]
+    ConnectionError(String),
+    #[error("Query failed: {0}")]
+    QueryError(String),
+}
+
+fn query_database() -> Result<Data, DatabaseError> {
+    // Proper error handling with custom type
+    if connection_failed() {
+        return Err(DatabaseError::ConnectionError("Failed to connect".into()));
+    }
+    Ok(data)
+}
+```
+
+### Bad
+```rust
+fn query_database() -> Option<Data> {
+    // Using Option for error cases
+    if connection_failed() {
+        return None;
+    }
+    Some(data)
+}
+
+fn process_data() -> Result<(), Box<dyn Error>> {
+    // Using generic error type
+    data.unwrap() // Using unwrap in production code
+}
+```
+
+## Rationale
+
+Proper error handling is crucial for:
+- Reliable and maintainable code
+- Clear error propagation paths
+- Better debugging experience
+- Type-safe error handling
+
+## References
+
+- [Rust Book - Error Handling](mdc:https:/doc.rust-lang.org/book/ch09-00-error-handling.html)
+- [thiserror Documentation](mdc:https:/docs.rs/thiserror/latest/thiserror)
+- [anyhow Documentation](mdc:https:/docs.rs/anyhow/latest/anyhow) 

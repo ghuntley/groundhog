@@ -1,0 +1,118 @@
+---
+description: Rust Documentation Best Practices
+globs: *.rs
+alwaysApply: false
+---
+This rule enforces best practices for documentation in Rust code.
+
+## Rule Details
+
+- **Pattern**: `*.rs`
+- **Severity**: Warning
+- **Category**: Documentation
+
+## Checks
+
+1. **Public API Documentation**
+   - Document all public items (types, functions, methods)
+   - Include examples in documentation
+   - Use `rustdoc` features appropriately
+   - Document panics and safety requirements
+
+2. **Documentation Style**
+   - Use complete sentences
+   - Start with a verb
+   - Include parameter and return value descriptions
+   - Document error conditions
+
+3. **Code Examples**
+   - Include runnable examples
+   - Use `no_run` or `compile_fail` when appropriate
+   - Show common usage patterns
+   - Include error handling examples
+
+4. **Module Documentation**
+   - Document module purpose and contents
+   - Include usage examples
+   - Document re-exports
+   - Include module-level examples
+
+## Examples
+
+### Good
+```rust
+/// Creates a new `Database` instance with the specified configuration.
+///
+/// # Arguments
+///
+/// * `config` - The database configuration to use
+///
+/// # Returns
+///
+/// A `Result` containing either the new `Database` instance or a `DatabaseError`
+///
+/// # Examples
+///
+/// ```
+/// use my_crate::Database;
+///
+/// let config = DatabaseConfig::default();
+/// let db = Database::new(config)?;
+/// ```
+///
+/// # Errors
+///
+/// Returns `DatabaseError::ConnectionFailed` if the database connection cannot be established
+pub fn new(config: DatabaseConfig) -> Result<Database, DatabaseError> {
+    // Implementation
+}
+
+/// A thread-safe reference-counted pointer to shared data.
+///
+/// This type provides interior mutability with runtime borrow checking.
+/// It is useful when you need to share mutable state between multiple owners.
+///
+/// # Examples
+///
+/// ```
+/// use std::cell::RefCell;
+///
+/// let data = RefCell::new(vec![1, 2, 3]);
+/// {
+///     let mut vec = data.borrow_mut();
+///     vec.push(4);
+/// }
+/// ```
+pub struct SharedData<T> {
+    // Implementation
+}
+```
+
+### Bad
+```rust
+// Missing documentation
+pub fn process(data: Vec<u8>) -> Result<(), Error> {
+    // Implementation
+}
+
+/// Process the data
+/// 
+/// Bad: Too vague, missing parameters, return value, and examples
+pub fn bad_doc(data: Vec<u8>) -> Result<(), Error> {
+    // Implementation
+}
+```
+
+## Rationale
+
+Proper documentation ensures:
+- Clear API understanding
+- Better code maintainability
+- Improved developer experience
+- Easier onboarding for new contributors
+
+## References
+
+- [Rust Documentation Guide](mdc:https:/doc.rust-lang.org/rustdoc/index.html)
+- [Rust Book - Documentation](mdc:https:/doc.rust-lang.org/book/ch14-02-publishing-to-crates-io.html)
+- [Rust API Guidelines](mdc:https:/rust-lang.github.io/api-guidelines/documentation.html) 

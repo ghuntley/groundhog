@@ -1,0 +1,79 @@
+---
+description: Rust Async/Await Best Practices
+globs: *.rs
+alwaysApply: false
+---
+This rule enforces best practices for asynchronous programming in Rust.
+
+## Rule Details
+
+- **Pattern**: `*.rs`
+- **Severity**: Error
+- **Category**: Async Programming
+
+## Checks
+
+1. **Async Function Design**
+   - Use `async fn` for asynchronous functions
+   - Return `impl Future` for complex async types
+   - Avoid blocking operations in async contexts
+
+2. **Future Handling**
+   - Use `.await` for awaiting futures
+   - Avoid unnecessary `.await` chaining
+   - Use `tokio::spawn` for concurrent tasks
+
+3. **Resource Management**
+   - Use `tokio::timeout` for timeouts
+   - Implement proper cancellation
+   - Handle backpressure appropriately
+
+4. **Async Traits**
+   - Use `async-trait` for async trait methods
+   - Consider using `dyn Future` for trait objects
+   - Implement proper error handling in async traits
+
+## Examples
+
+### Good
+```rust
+use tokio::time::{timeout, Duration};
+
+async fn fetch_data() -> Result<Data, Error> {
+    // Proper async function with timeout
+    let data = timeout(Duration::from_secs(5), fetch_from_api()).await??;
+    Ok(data)
+}
+
+#[async_trait]
+pub trait AsyncService {
+    async fn process(&self, input: Input) -> Result<Output, Error>;
+}
+```
+
+### Bad
+```rust
+fn blocking_operation() {
+    // Blocking operation in async context
+    std::thread::sleep(Duration::from_secs(1));
+}
+
+async fn unnecessary_await() {
+    // Unnecessary await chaining
+    let result = some_future().await.await.await;
+}
+```
+
+## Rationale
+
+Proper async/await usage ensures:
+- Efficient resource utilization
+- Non-blocking I/O operations
+- Scalable concurrent applications
+- Clear async boundaries
+
+## References
+
+- [Rust Async Book](mdc:https:/rust-lang.github.io/async-book)
+- [Tokio Documentation](mdc:https:/docs.rs/tokio/latest/tokio)
+- [async-trait Documentation](mdc:https:/docs.rs/async-trait/latest/async_trait) 

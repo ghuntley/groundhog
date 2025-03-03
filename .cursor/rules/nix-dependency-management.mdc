@@ -1,0 +1,70 @@
+---
+description: Nix Dependency Management and Versioning
+globs: *.nix
+alwaysApply: false
+---
+## Description
+This rule enforces best practices for managing dependencies and versioning in Nix files.
+
+## Rule Details
+- Use specific version constraints for dependencies
+- Prefer using `fetchFromGitHub` with specific tags/commits over floating versions
+- Use `buildInputs` for runtime dependencies
+- Use `nativeBuildInputs` for build-time dependencies
+- Use `propagatedBuildInputs` only when necessary
+- Avoid using `buildEnv` for simple dependency management
+- Use `override` and `overrideAttrs` instead of direct attribute modification
+
+## Examples
+
+### Good
+```nix
+{ lib
+, stdenv
+, fetchFromGitHub
+, pkg-config
+, openssl
+}:
+
+stdenv.mkDerivation rec {
+  pname = "my-package";
+  version = "1.2.3";
+
+  src = fetchFromGitHub {
+    owner = "owner";
+    repo = "repo";
+    rev = "v${version}";
+  };
+
+  nativeBuildInputs = [ pkg-config ];  # Build-time dependency
+  buildInputs = [ openssl ];          # Runtime dependency
+
+  # Use override for version-specific changes
+  passthru = {
+    updateScript = ./update.sh;
+  };
+}
+```
+
+### Bad
+```nix
+{ stdenv }:
+
+stdenv.mkDerivation {
+  name = "my-package";
+  src = ./.;  # Missing version control
+  buildInputs = [ ];  # Missing essential dependencies
+  propagatedBuildInputs = [ ];  # Unnecessary propagation
+}
+```
+
+## Why
+- Specific version constraints ensure reproducible builds
+- Proper dependency categorization prevents unnecessary rebuilds
+- Using `fetchFromGitHub` with specific versions prevents unexpected changes
+- Clear dependency management makes packages more maintainable
+- Proper use of `override` mechanisms allows for better customization
+
+## References
+- [Nixpkgs Manual - Dependencies](mdc:https:/nixos.org/nixpkgs/manual/#chap-dependencies)
+- [Nixpkgs Manual - Version Management](mdc:https:/nixos.org/nixpkgs/manual/#chap-version-management) 
